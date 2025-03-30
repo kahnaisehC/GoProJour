@@ -8,13 +8,40 @@ import (
 	"os"
 )
 
+const (
+	xmin, ymin, xmax, ymax = -2, -2, +2, +2
+	width, height          = 1024, 1024
+)
+
 func main() {
-	const (
-		xmin, ymin, xmax, ymax = -2, -2, +2, +2
-		width, height          = 1024, 1024
-	)
+	img := originalFractal()
+	png.Encode(os.Stdout, img) //
+}
+
+func subPixelFractal() *image.RGBA {
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
-	for py := 0; py < width; py++ {
+	for py := 0; py < height; py++ {
+		for dy := -0.5; dy < 0.5; dy += 0.1 {
+			y := (float64(py)+dy)/height*(ymax-ymin) + ymin
+			for px := 0; px < width; px++ {
+				var z struct {
+					r int
+					g int
+					b int
+				}
+				for dx := -0.5; dx < 0.5; dx += 0.1 {
+					x := (float64(px)+dx)/width*(xmax-xmin) + xmin
+				}
+				img.Set(px, py, mandelbrot(z))
+			}
+		}
+	}
+	return img
+}
+
+func originalFractal() *image.RGBA {
+	img := image.NewRGBA(image.Rect(0, 0, width, height))
+	for py := 0; py < height; py++ {
 		y := float64(py)/height*(ymax-ymin) + ymin
 		for px := 0; px < width; px++ {
 			x := float64(px)/width*(xmax-xmin) + xmin
@@ -22,7 +49,7 @@ func main() {
 			img.Set(px, py, mandelbrot(z))
 		}
 	}
-	png.Encode(os.Stdout, img) //
+	return img
 }
 
 func mandelbrot(z complex128) color.Color {
